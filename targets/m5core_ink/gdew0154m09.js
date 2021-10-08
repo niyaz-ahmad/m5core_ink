@@ -316,19 +316,19 @@ class Display {		// implementation of PixelsOut
 
 		this.#buffer.fill(0xFF);
 		this.#output(0x10);
-//        Timer.delay(2);
+        Timer.delay(2);
 		this.#buffer.fill(0);
 		this.#output(0x13);
-//        Timer.delay(2);
+        Timer.delay(2);
         epd.writeCMD(0x12);
         epd.waitBusy(1000);
 
 		this.#buffer.fill(0);
 		this.#output(0x10);
-//        Timer.delay(2);
+        Timer.delay(2);
 		this.#buffer.fill(0xFF);
 		this.#output(0x13);
-//        Timer.delay(2);
+        Timer.delay(2);
         epd.writeCMD(0x12);
         epd.waitBusy(1000);
 	}
