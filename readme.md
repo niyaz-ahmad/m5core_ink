@@ -1,5 +1,5 @@
 # Moddable SDK support for M5Core Ink
-Updated October 6, 2021
+Updated October 7, 2021
 
 This is experimental. The display fundamentals are working. Feel free to help.
 
@@ -25,14 +25,15 @@ The display refresh rate is about 3 FPS. The balls bounce slowly.
 
 The following are implemented and working:
 
-- EPD display driver
-- RTC
+- EPD display driver (GDEW0154M09)
+- RTC (PCF8563 / BM8563)
 - Up / Down / Middle / Power / External buttons 
 - LED
+- Buzzer
 
 To be done:
 
-- Buzzer
+(none)
 
 Known issues:
 
@@ -82,4 +83,50 @@ const led = new device.peripheral.led.Default;
 led.on = 1;		// full strength
 led.on = 0;		// off
 led.on = 0.5;		// half strength
+```
+
+## Buzzer
+
+The buzzer is implemented to play tones. As with the M5 Speaker API, sounds are played immediately.
+
+Instantiate the buzzer:
+
+```js
+const buzzer = new device.peripheral.tone.Default;
+```
+
+Play a note by name and octave:
+
+```js
+buzzer.note("C", 4);
+```
+
+Play a note by name and octave for a fixed duration in milliseconds:
+
+```js
+buzzer.note("Bb", 4, 500);
+```
+
+Play a tone by frequency:
+
+```js
+buzzer.tone(262);
+```
+
+Play a tone by frequency for a fixed duration in milliseconds:
+
+```js
+buzzer.tone(262, 500);
+```
+
+Mute the buzzer (it automatically unmutes on the next note or tone played):
+
+```js
+buzzer.mute();
+```
+
+Close the buzzer:
+
+```js
+buzzer.close();
 ```

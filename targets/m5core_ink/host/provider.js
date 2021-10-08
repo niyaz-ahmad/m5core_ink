@@ -29,6 +29,8 @@ import SMBus from "embedded:io/smbus";
 import SPI from "embedded:io/spi";
 import RTC from "embedded:peripherals/RTC-NXP/PCF8563"
 
+import Timer from "timer";
+
 //@@ Move Button class to common module
 class Button {
 	#io;
@@ -89,6 +91,70 @@ class LED {
 		return this.#io.value;
 	}
 }
+
+const notes = new Map;
+notes.set("C", 4186);
+notes.set("Db", 4435);
+notes.set("C#", 4435);
+notes.set("D", 4699);
+notes.set("D#", 4978);
+notes.set("Eb", 4978);
+notes.set("E", 5274);
+notes.set("F", 5588);
+notes.set("F#", 5920);
+notes.set("Gb", 5920);
+notes.set("G", 6272);
+notes.set("G#", 6645);
+notes.set("Ab", 6645);
+notes.set("A", 7040);
+notes.set("A#", 7459);
+notes.set("Bb", 7459);
+notes.set("B", 790);
+
+class Tone {
+	#io;
+	
+	constructor() {
+		this.#io = new PWM({pin: device.pin.buzzer});
+	}
+	close() {
+		if (!this.#io) 
+			return;
+
+		this.#io.close();
+		if (this.#io.timer)
+			Timer.clear(this.#io.timer);
+	}
+	tone(hz, duration) {
+		const io = this.#io;
+		io.hz = hz;
+		io.write(512);
+		
+		if (duration) {
+			if (io.timer)
+				Timer.schedule(io.timer, duration);
+			else
+				io.timer = Timer.set(() => {
+					delete io.timer;
+					this.mute();
+				}, duration);
+		}
+		else if (io.timer) {
+			Timer.clear(io.timer);
+			delete io.timer;
+		}
+	}
+	note(note, octave = 4, duration) {
+		note = notes.get(note);
+		if (!note || (octave > 8))
+			throw new Error;
+		this.tone(Math.idiv(note, (1 << (8 - octave))), duration);
+	}
+	mute() {
+		this.#io.write(0);
+	}
+}
+
 const device = {
 	I2C: {
 		default: {
@@ -192,6 +258,9 @@ const device = {
 					});
 				}
 			}
+		},
+		tone: {
+			Default: Tone
 		}
 	}
 };
