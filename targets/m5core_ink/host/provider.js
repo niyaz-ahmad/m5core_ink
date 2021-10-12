@@ -177,17 +177,24 @@ const device = {
 		epdSelect: 9, 
 		epdDC: 15, 
 		epdReset: 0,
-		epdBusy: 4
+		epdBusy: 4,
+		rtcInterrupt: 19,
 	},
 	sensor: {
 	},
 	peripheral: {
 		RTC: class {
-			constructor() {
+			constructor(options) {
 				return new RTC({
+					...options,
 					...device.I2C.default,
-					io: SMBus
-				});
+					io: SMBus,
+					interrupt: {
+						io: Digital,
+						pin: device.pin.rtcInterrupt
+					}
+				})
+				;
 			}
 		},
 		button: {
