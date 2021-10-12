@@ -113,35 +113,33 @@ notes.set("B", 790);
 
 class Tone {
 	#io;
+	#timer;
 	
 	constructor() {
 		this.#io = new PWM({pin: device.pin.buzzer});
 	}
 	close() {
-		if (!this.#io) 
-			return;
-
-		this.#io.close();
-		if (this.#io.timer)
-			Timer.clear(this.#io.timer);
+		this.#io?.close();
+		if (this.#timer)
+			Timer.clear(this.#timer);
+		this.#io = this.#timer = undefined;
 	}
 	tone(hz, duration) {
-		const io = this.#io;
-		io.hz = hz;
+		const io = this.#io = new PWM({from: this.#io, hz});
 		io.write(512);
-		
+	
 		if (duration) {
-			if (io.timer)
-				Timer.schedule(io.timer, duration);
+			if (this.#timer)
+				Timer.schedule(this.#timer, duration);
 			else
-				io.timer = Timer.set(() => {
-					delete io.timer;
+				this.#timer = Timer.set(() => {
+					this.#timer = undefined;
 					this.mute();
 				}, duration);
 		}
-		else if (io.timer) {
-			Timer.clear(io.timer);
-			delete io.timer;
+		else if (this.#timer) {
+			Timer.clear(this.#timer);
+			this.#timer = undefined;
 		}
 	}
 	note(note, octave = 4, duration) {
