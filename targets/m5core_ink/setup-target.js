@@ -19,7 +19,7 @@
  */
 
 export default function (done) {
-	const Digital = device.io.Digital; 
+	const Digital = device.io.Digital;
 	globalThis.power = {
 		main: new Digital({
 			pin: device.pin.powerMain,

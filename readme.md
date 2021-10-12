@@ -1,11 +1,11 @@
 # Moddable SDK support for M5Core Ink
-Updated October 7, 2021
+Updated October 11, 2021
 
 This is experimental. The display fundamentals are working. Feel free to help.
 
 The Moddable SDK Piu that do not depend on touch generally seem to work as-is.
 
-This porting effort depends on the new APIs standardized by [Ecma-419](https://419.ecma-international.org). Be sure to grab the latest Moddable SDK to get some fixes that this code depends on.
+This porting effort depends on the new APIs standardized by [Ecma-419](https://419.ecma-international.org). Be sure to grab the latest Moddable SDK to get some fixes that this code depends on. Instructions for updating the Moddable SDK are in [https://github.com/Moddable-OpenSource/moddable/blob/public/documentation/Moddable%20SDK%20-%20Getting%20Started.md#table-of-contents).
 
 This work is similar to the M5Paper port, though the display driver is entirely different as the devices use dramatically different display controllers.
 
@@ -30,6 +30,7 @@ The following are implemented and working:
 - Up / Down / Middle / Power / External buttons 
 - LED
 - Buzzer
+- Battery voltage
 
 To be done:
 
@@ -57,6 +58,27 @@ Dithering is performed using the new `commodetto/Dither` module.
 To support dithering the driver requires that Poco render at 8-bit gray (256 Gray). The driver also only supports full screen updates as partial updates with dithering show seams. Partial updates could, and probably should, be supported as they could be useful when not using dithering.
 
 The driver maintains a back buffer, which is more-or-less necessary because of the way the display controller works. Fortunately the buffer is just 5000 bytes, since it can use 1-bit pixels.
+
+The display driver does a full screen refresh on the first draw after instantiation. To disable this, set `refresh` to false.
+
+```
+screen.configure({refresh: false});
+```
+
+The display driver uses partial updates after the first frame. To force a full screen update: 
+
+```
+screen.configure({refresh: true});
+```
+
+A partial update may be performed on power-up to avoid an initial full screen flash. To do this, the previous frame must first be redrawn to put it back into the controller's memory. To do that, first draw the previous frame with `previous` set to true, then draw the next frame as usual. The driver resets the value of `previous` to `false` after one frame is drawn.
+
+```
+screen.configure({previous: true, refresh: false});
+// draw previous
+// draw next
+
+```
 
 Hardware rotation is not supported. It could be, but given that the display is square it isn't obviously useful. Both Poco and Piu support software rotation at build time, so rotation is available if needed, just not at runtime.
 
@@ -129,4 +151,28 @@ Close the buzzer:
 
 ```js
 buzzer.close();
+```
+
+## Battery Voltage
+
+To get the battery voltage:
+
+```js
+const battery = new device.peripheral.battery.Default;
+const voltage = battery.read();
+```
+
+## Battery Powered Operation
+
+To operate M5Core Ink on battery power, the power hold line must be set to 1. This is donee by default in the `setup/target` module.
+
+```
+power.main.write(1);
+```
+
+To turn the device off when running on battery power, set the power hold line to 0.
+
+
+```
+power.main.write(0);
 ```
