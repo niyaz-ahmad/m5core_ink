@@ -179,6 +179,7 @@ const device = {
 		epdReset: 0,
 		epdBusy: 4,
 		rtcInterrupt: 19,
+		batteryVoltage: 35
 	},
 	sensor: {
 	},
@@ -267,6 +268,25 @@ const device = {
 		},
 		tone: {
 			Default: Tone
+		},
+		battery: {
+			Default: class {
+				#analog;
+				constructor() {
+					this.#analog = new Analog({pin: device.pin.batteryVoltage});
+				}
+				close() {
+					this.#analog?.close();
+					this.#analog = undefined;
+				}
+				read() {
+					let value = this.#analog.read();
+					value *= 3300;
+					value *= 25.1 / 5.1 / 1000;
+					value /= (1 << this.#analog.resolution);
+					return value;
+				}
+			}
 		}
 	}
 };
