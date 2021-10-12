@@ -20,7 +20,7 @@
  
 /*
 
-	Data sheet foor controller: https://v4.cecdn.yun300.cn/100001_1909185148/GDEW0154M09-200709.pdf
+	Data sheet for controller: https://v4.cecdn.yun300.cn/100001_1909185148/GDEW0154M09-200709.pdf
 	Reference implementation: https://github.com/m5stack/M5-CoreInk/blob/master/src/utility/Ink_eSPI.cpp
 */
 
@@ -160,6 +160,19 @@ class EPD {
 		Timer.delay(100);
 		this.waitBusy(1000);
 	}
+	close() {
+		this.select?.close();
+		this.dc?.close();
+		this.reset?.close();
+		this.busy?.close();
+		this.spi?.close();
+	
+		delete this.select;
+		delete this.dc;
+		delete this.reset;
+		delete this.busy;
+		delete this.spi;
+	}
 	writeCMD(cmd) {
 		this.select.write(0);
 		this.dc.write(0);
@@ -248,23 +261,49 @@ class Display {		// implementation of PixelsOut
 	#dither = new Dither({width: 200}); 
 
 	constructor(options) {		
-		this.refresh();
-		this.#epd.switchMode(INK_PARTIAL_MODE);
+		this.#epd.refresh = true;
 	}
 	close() {
-		this.#epd?.close();
-		this.#epd = undefined;
+		if (this.#epd) {
+			const epd = this.#epd;
+
+			epd.writeCMD(0x50);
+			epd.writeData(0xF7);
+			epd.writeCMD(0x02);		//power off
+			epd.waitBusy(5_000);
+			epd.writeCMD(0x07);		//deep sleep
+			epd.writeData(0xA5);
+
+			epd.close();
+			this.#epd = undefined;
+		}
+
 		this.#dither?.close();
 		this.#dither = undefined;
 	}
 	configure(options) {
+		const {refresh, previous} = options;
+
+		if (undefined !== refresh)
+			this.#epd.refresh = refresh;
+		
+		if (undefined !== previous)
+			this.#epd.previous = previous;
 	}
 	begin(x, y, width, height) {
 		const epd = this.#epd;
 
+		if (epd.refresh) {
+			epd.switchMode(INK_FULL_MODE);
+			this.refresh();
+			delete epd.refresh;
+		}
+		epd.switchMode(INK_PARTIAL_MODE);
+
 		epd.setArea(x, y, width, height);
 
-		this.#output(0x10);
+		if (!epd.previous)
+			this.#output(0x10);
 
 		this.#buffer.position = 0;
 		this.#dither.reset();
@@ -277,14 +316,12 @@ class Display {		// implementation of PixelsOut
 	end() {
 		const epd = this.#epd;
 
-		epd.select.write(1);
-
-//		Timer.delay(2);
-		this.#output(0x13);
-//		Timer.delay(2);
-
-		epd.writeCMD(0x12);
-		epd.waitBusy(1000);
+		if (!epd.previous) {
+			this.#output(0x13);
+			epd.writeCMD(0x12);
+			epd.waitBusy(1000);
+		}
+		delete epd.previous;
 	}
 	continue() {
 		return this.end();
