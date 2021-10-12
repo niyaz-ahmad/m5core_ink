@@ -259,7 +259,8 @@ const device = {
 				constructor() {
 					return new LED({
 						io: PWM,
-						pin: device.pin.led
+						pin: device.pin.led,
+						invert: true
 					});
 				}
 			}
