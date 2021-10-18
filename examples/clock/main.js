@@ -59,8 +59,8 @@ function drawTime(render, when) {
 
 export default function () {
 	const rtc = new device.peripheral.RTC;
-	if (!rtc.enabled)
-		trace("RTC disabled]\n");
+	if (!rtc.enabled && (Date.now() > (new Date("July 1, 2021")).valueOf()))
+		rtc.time = Date.now();
 
 	rtc.alarm = rtc.time + 60_000;	// 1 minute
 

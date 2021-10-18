@@ -166,7 +166,7 @@ const device = {
 			io: SPI,
 			clock: 18,
 			out: 23,
-			port: 2,		// VSPI_HOST
+			port: 2		// VSPI_HOST
 		}
 	},
 	io: {Analog, Digital, DigitalBank, I2C, PulseCount, PWM, Serial, SMBus, SPI},
@@ -188,14 +188,15 @@ const device = {
 			constructor(options) {
 				return new RTC({
 					...options,
-					...device.I2C.default,
-					io: SMBus,
+					rtc: {
+						...device.I2C.default,
+						io: SMBus
+					},
 					interrupt: {
 						io: Digital,
 						pin: device.pin.rtcInterrupt
 					}
-				})
-				;
+				});
 			}
 		},
 		button: {
@@ -277,14 +278,11 @@ const device = {
 				}
 				close() {
 					this.#analog?.close();
-					this.#analog = undefined;
 				}
 				read() {
-					let value = this.#analog.read();
-					value *= 3300;
+					let value = this.#analog.read() * 3300;
 					value *= 25.1 / 5.1 / 1000;
-					value /= (1 << this.#analog.resolution);
-					return value;
+					return value / (1 << this.#analog.resolution);
 				}
 			}
 		}

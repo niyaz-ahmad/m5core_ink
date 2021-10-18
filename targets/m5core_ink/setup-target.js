@@ -26,7 +26,7 @@ export default function (done) {
 			mode: Digital.Output
 		}),
 	};
-	power.main.write(1);		// this doesn't work??
+	power.main.write(1);	// latch power on
 
 	done();
 }
