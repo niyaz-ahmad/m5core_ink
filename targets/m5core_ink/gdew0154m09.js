@@ -283,13 +283,24 @@ class Display {		// implementation of PixelsOut
 		this.#buffer = undefined;
 	}
 	configure(options) {
-		const {refresh, previous} = options;
+		const {refresh, previous, dither} = options;
 
 		if (undefined !== refresh)
 			this.#epd.refresh = refresh;
 		
 		if (undefined !== previous)
 			this.#epd.previous = previous;
+
+		if (undefined !== dither) {
+			this.#dither.close();
+			
+			let algorithm = dither;
+			if (false === algorithm)
+				algorithm = "none";
+			else if (true === algorithm)
+				algorithm = undefined	// default
+			this.#dither = new Dither({width: 200, algorithm});
+		}
 	}
 	begin(x, y, width, height) {
 		const epd = this.#epd;
@@ -344,10 +355,6 @@ class Display {		// implementation of PixelsOut
 	}
 	pixelsToBytes(pixels) {
 		return pixels;
-	}
-	set dither(algorithm) {
-		this.#dither.close();
-		this.#dither = new Dither({width: 200, algorithm}); 
 	}
 	refresh() {
 		const epd = this.#epd;
